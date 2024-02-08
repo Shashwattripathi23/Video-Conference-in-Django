@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>live stream</title>
+</head>
+
+<body>
+    <h3 id="username">Username</h3>
+    <div>
+        <input id="userinput" type="text"><button id="join">JOIN </button>
+    </div>
+    <div class="cont">
+        <div id="video">
+            <div><video src="" autoplay playsinline id="local"></video></div>
+            <button id="audio">audio</button>
+            <button id="videoB">video</button>
+        </div>
+    </div>
+    <div id="chat">
+        <h3>Chat</h3>
+        <div id="messages">
+            <ul id="message"></ul>
+        </div>
+
+        <div><input id="msg" type="text"><button id="sub">Send</button></div>
+        <button id="share screen">Share Screen</button>
+    </div>
+    <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+</body>
+
+</html>
