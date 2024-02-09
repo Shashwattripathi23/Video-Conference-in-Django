@@ -320,3 +320,8 @@ function getDataChannels() {
 
   return dataChannels;
 }
+
+var ssbtn = document.querySelector("#ss");
+ssbtn.addEventListener("click", startScreenSharing);
+
+var screenVideo = document.querySelector("#screen");

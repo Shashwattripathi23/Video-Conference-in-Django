@@ -36,7 +36,7 @@ class ChatConsumers(AsyncWebsocketConsumer):
                 receiver_channel_name,
                 {
                     'type': 'send.sdp',
-                            'receive_dict': receive_dict
+                    'receive_dict': receive_dict
                 }
             )
 
@@ -49,7 +49,7 @@ class ChatConsumers(AsyncWebsocketConsumer):
             {
                 'type': 'send.sdp',
                 'receive_dict': receive_dict
-            }   
+            }
         )
 
     async def send_sdp(self, event):
