@@ -5,8 +5,17 @@ var inputUsername = document.querySelector("#userinput");
 var btnjoin = document.querySelector("#join");
 var webSocket;
 var username;
-
+var receiver_channel_name;
 var mapPeers = {};
+
+function findPeerByUsername(peerUsername) {
+  for (const [username, peerData] of Object.entries(mapPeers)) {
+    if (username === peerUsername) {
+      return peerData[0]; // Return the RTCPeerConnection object
+    }
+  }
+  return null; // Return null if the peerUsername is not found
+}
 
 function websocketonmessage(event) {
   var parsedData = JSON.parse(event.data);
@@ -17,8 +26,19 @@ function websocketonmessage(event) {
     return;
   }
 
-  var receiver_channel_name = parsedData["message"]["receiver_channel_name"];
+  receiver_channel_name = parsedData["message"]["receiver_channel_name"];
 
+  if (action == "screenshare") {
+    var remoteScreenVideo = createScreenVideo(peerUsername);
+    var peer = findPeerByUsername(peerUsername); // Retrieve the peer object
+    if (peer) {
+      addScreenLocalTracks(peer);
+      setOnTrack(peer, remoteScreenVideo); // Pass the peer object to setOnTrack
+      console.log("Screen sharing started");
+    } else {
+      console.log("Peer not found for username:", peerUsername);
+    }
+  }
   if (action == "new-peer") {
     createOfferer(peerUsername, receiver_channel_name);
     return;
@@ -90,17 +110,24 @@ btnjoin.addEventListener("click", () => {
 });
 
 var localStream = new MediaStream();
+
+var localScreenStream = new MediaStream();
 const constraints = {
   video: true,
   audio: true,
 };
+document.querySelector("#vc").addEventListener("click", () => {
+  constraints["video"] = !constraints["video"];
+  constraints["audio"] = !constraints["audio"];
+});
 
 const localVideo = document.querySelector("#local");
+const localScreenVideo = document.querySelector("#screen");
 const abtn = document.querySelector("#audio");
 const vbtn = document.querySelector("#videoB");
 
 var userMedia = navigator.mediaDevices
-  .getUserMedia(constraints)
+  .getDisplayMedia(constraints)
   .then((stream) => {
     localStream = stream;
     localVideo.srcObject = localStream;
@@ -109,7 +136,7 @@ var userMedia = navigator.mediaDevices
     var audioTrack = stream.getAudioTracks();
     var videoTrack = stream.getVideoTracks();
 
-    audioTrack[0].enabled = true;
+    audioTrack[0].enabled = false;
     videoTrack[0].enabled = true;
 
     abtn.addEventListener("click", () => {
@@ -134,10 +161,9 @@ function sendMessageOnClick() {
   li.appendChild(document.createTextNode("Me :" + message));
   messagelist.appendChild(li);
 
-  var datachannels = getDataChannels();
-
   message = username + ": " + message;
 
+  var datachannels = getDataChannels();
   for (index in datachannels) {
     datachannels[index].send(message);
   }
@@ -186,7 +212,7 @@ function createOfferer(peerUsername, receiver_channel_name) {
   });
   peer.addEventListener("icecandidate", (event) => {
     if (event.candidate) {
-      console.log("new ice Candidate", JSON.stringify(peer.localDescription));
+      // console.log("new ice Candidate", JSON.stringify(peer.localDescription));
       return;
     }
 
@@ -204,9 +230,13 @@ function createOfferer(peerUsername, receiver_channel_name) {
 }
 
 function createAnswerer(offer, peerUsername, receiver_channel_name) {
-  var peer = new RTCPeerConnection(null);
+  var peer = new RTCPeerConnection(null); // here instead of null, credentials of turn or stun server will come
 
   addLocalTracks(peer);
+
+  var remoteScreenVideo = createScreenVideo(peerUsername);
+  setOnTrack(peer, remoteScreenVideo);
+  addScreenLocalTracks(peer);
 
   var remoteVideo = createVideo(peerUsername);
   setOnTrack(peer, remoteVideo);
@@ -238,7 +268,7 @@ function createAnswerer(offer, peerUsername, receiver_channel_name) {
   });
   peer.addEventListener("icecandidate", (event) => {
     if (event.candidate) {
-      console.log("new ice Candidate", JSON.stringify(peer.localDescription));
+      // console.log("new ice Candidate", JSON.stringify(peer.localDescription));
       return;
     }
 
@@ -268,10 +298,47 @@ function addLocalTracks(peer) {
   });
   return;
 }
+function addScreenLocalTracks(peer) {
+  localScreenStream.getTracks().forEach((track) => {
+    peer.addTrack(track, localScreenStream);
+  });
+}
+
+const ssBtn = document.querySelector("#ss");
+ssBtn.addEventListener("click", shareScreen);
+
+function shareScreen() {
+  sstog = true;
+  var screenMedia = navigator.mediaDevices
+    .getDisplayMedia({ video: true })
+    .then((stream) => {
+      localScreenStream = stream;
+      localScreenVideo.srcObject = localScreenStream;
+      sendSignal("screenshare", {
+        username: username,
+        receiver_channel_name: receiver_channel_name,
+      });
+    })
+    .catch((error) => {
+      console.error("Error sharing screen:", error);
+    });
+}
+var sstog = false;
+function setOnTrack(peer, remoteVideo) {
+  var remoteStream = new MediaStream();
+
+  remoteVideo.srcObject = remoteStream;
+
+  peer.addEventListener("track", (event) => {
+    console.log("Received track:", event.track);
+    remoteStream.addTrack(event.track);
+  });
+}
 
 function dcOnMessage(event) {
   var message = event.data;
-
+  if (message == "new screen share") {
+  }
   var li = document.createElement("li");
   li.appendChild(document.createTextNode(message));
   messagelist.appendChild(li);
@@ -294,14 +361,22 @@ function createVideo(peerUsername) {
 
   return remoteVideo;
 }
+function createScreenVideo(peerUsername) {
+  var videoContainer = document.querySelector("#SSvideo");
 
-function setOnTrack(peer, remoteVideo) {
-  var remoteStream = new MediaStream();
+  var remoteVideo = document.createElement("video");
 
-  remoteVideo.srcObject = remoteStream;
-  peer.addEventListener("track", async (event) => {
-    remoteStream.addTrack(event.track, remoteStream);
-  });
+  remoteVideo.id = peerUsername + "-SSvideo";
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+
+  var videoWrapper = document.createElement("div");
+
+  videoContainer.appendChild(videoWrapper);
+
+  videoWrapper.appendChild(remoteVideo);
+
+  return remoteVideo;
 }
 
 function removeVideo(video) {
@@ -320,8 +395,3 @@ function getDataChannels() {
 
   return dataChannels;
 }
-
-var ssbtn = document.querySelector("#ss");
-ssbtn.addEventListener("click", startScreenSharing);
-
-var screenVideo = document.querySelector("#screen");

@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ccc;
+        }
+
+        #chat-area {
+            height: 300px;
+            width: 90%;
+            border: 1px solid #ffffff;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: #ffffff;
+        }
+
+        #input-box {
+            width: calc(100% - 130px);
+            padding: 5px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #btn-send {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #btn-audio-call,
+        #btn-video-call,
+        #btn-screenShare {
+            padding: 5px 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #call-area {
+            margin-top: 10px;
+        }
+
+        #username {
+            margin-bottom: 10px;
+        }
+
+        #userinput {
+            margin-right: 10px;
+            padding: 5px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #join {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #chatting-with {
+            margin-top: 20px;
+        }
+
+        #users {
+            display: flex;
+        }
+
+        #sender,
+        #receiver {
+            flex: 1;
+            /* Equal width */
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-right: 10px;
+            background-color: #ffffff;
+            height: 40vh;
+        }
+
+        .control-buttons {
+            position: relative;
+            /* top: 300px; */
+            left: 25%;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            /* Set a high z-index value */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent background */
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Style the buttons */
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        /* Style the yes button */
+        .modal-content button.yes {
+            background-color: #4caf50;
+            /* Green */
+            color: white;
+            border: none;
+        }
+
+        /* Style the no button */
+        .modal-content button.no {
+            background-color: #f44336;
+            /* Red */
+            color: white;
+            border: none;
+        }
+
+        .control-buttons button {
+            font-size: 40px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            background-color: crimson;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .usersWin {
+            position: relative;
+            left: 25%;
+            height: 30vh;
+            width: 20vw;
+            background-color: darkgray;
+        }
+
+        .control-buttons button:hover {
+            background-color: cadetblue;
+        }
+    </style>
+</head>
+
+<body>
+    <h3 id="username">Username</h3>
+    <div>
+        <input id="userinput" type="text"><button id="join">JOIN</button>
+    </div>
+    <div id="chatting-with">
+        <h4>Chatting with:</h4>
+        <h3 id="friend">No one</h3>
+    </div>
+    <div id="chat-area">
+        <!-- Chat messages will be displayed here -->
+        <div id="messages">
+            <ul id="message"></ul>
+        </div>
+    </div>
+    <div id="call-area">
+        <button id="btn-audio-call">Audio Call</button>
+        <button id="btn-video-call">Video Call</button>
+        <button id="btn-screenShare">Screen Share</button>
+    </div>
+    <div>
+        <input type="text" id="input-box" placeholder="Type your message...">
+        <button id="btn-send">Send</button>
+    </div>
+
+    <div id="users">
+        <div id="sender">
+            <video class="usersWin" id="sender-video" autoplay muted></video>
+            <div class="control-buttons">
+                <button id="toggle-camera">📷</button>
+                <button id="toggle-mic">🎤</button>
+            </div>
+        </div>
+        <div id="receiver">
+
+        </div>
+    </div>
+    <script src="{% static 'js/oneOnOne.js' %}"></script>
+</body>
+
+
+</html>
